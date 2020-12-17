@@ -1,6 +1,6 @@
 import './App.css';
 import ArticleList from './components/ArticleList'
-import {useState, useEffect} from 'react';
+import {useState, useEffect, useMemo} from 'react';
 import Header from './components/Header'
 import FilterList from './components/FilterList'
 
@@ -9,13 +9,16 @@ function App() {
   const [articles, setArticles] = useState([])
   const [searchTerm, setSearchTerm] = useState("")
   const [filterType, setFilterType] = useState("")
-  const [comments, setComments] =useState({})
+  const [comments, setComments] = useState({})
+  const filteredArticles = useMemo(() => {
+    const searchTermFilteredArticles = articles.filter(article => article.title.toLowerCase().includes(searchTerm.toLowerCase()))
+    return searchTermFilteredArticles.filter(article => article.type.includes(filterType))
+  }, [searchTerm, filterType, articles])
   
-
   useEffect(() => {
     fetch("https://hacker-news.firebaseio.com/v0/topstories.json")
     .then(res => res.json())
-    .then(storyIds => storyIds.splice(0, 100).map(id => getItem(id)))
+    .then(storyIds => storyIds.slice(0, 5).map(id => getItem(id)))
     .then(promises => Promise.all(promises))
     .then(articles => setArticles(articles))
     
@@ -40,10 +43,6 @@ function App() {
     setFilterType(type)
   }
 
-  const searchTermFilteredArticles = articles.filter(article => article.title.toLowerCase().includes(searchTerm.toLowerCase()))
-
-  const filteredArticles = searchTermFilteredArticles.filter(article => article.type.includes(filterType))
-    
   return (
   <>
     <Header></Header>
